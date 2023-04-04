@@ -63,7 +63,7 @@ jobs:
         id: deploy-to-function
         with:
           app-name: 'function-app-sample-csv'
-          slot-name: 'Production'
+          slot-name: 'staging'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B013C510E1A041EC9E6301DDE335A0C6 }}
           scm-do-build-during-deployment: true
