@@ -31,6 +31,7 @@ jobs:
           python -m pip install pipenv
           pipenv sync --dev
           pipenv run flake8 --show-source .
+          pipenv run python -m unittest discover
 
   build:
     runs-on: ubuntu-latest
