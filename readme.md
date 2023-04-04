@@ -1,6 +1,8 @@
 Azure Function App sample: CSV
 ===
 
+[![Build and deploy Python project to Azure Function App - function-app-sample-csv](https://github.com/yuu-eguci/function-app-sample-csv/actions/workflows/main_function-app-sample-csv.yml/badge.svg)](https://github.com/yuu-eguci/function-app-sample-csv/actions/workflows/main_function-app-sample-csv.yml)
+
 🐍 :octocat: Azure Functions + Timer trigger + GitHub Actions + Python3.10 + Pipenv + Util class + Flake8 + Unittest + Csv
 そんなサンプルを作ろうじゃないか!
 
