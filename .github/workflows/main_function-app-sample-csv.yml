@@ -5,9 +5,10 @@
 name: Build and deploy Python project to Azure Function App - function-app-sample-csv
 
 on:
-  push:
-    branches:
-      - main
+  # NOTE: 遊び終わったリポジトリなので trigger を無効化しています。
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 env:
@@ -45,18 +46,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Create virtual environment
+      - name: Resolve Project Dependencies Using Pipenv
         run: |
           python -m pip install pipenv
-          pipenv sync
+          PIP_TARGET=".python_packages/lib/site-packages" pipenv sync
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: python-app
           path: |
-            . 
-            !venv/
+            .
 
   deploy:
     runs-on: ubuntu-latest
