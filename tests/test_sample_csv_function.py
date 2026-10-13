@@ -1,4 +1,5 @@
 import logging
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -28,6 +29,7 @@ def test_quoted_newline_is_kept():
         ("a,b\n\n1,2\n\n", [{"a": "1", "b": "2"}]),  # 空行は飛ばす
         ("a,b\r1,2\r", [{"a": "1", "b": "2"}]),  # CR だけの改行
         ("a,b,c\n1,2,\n", [{"a": "1", "b": "2", "c": ""}]),  # 末尾の空の列
+        ("\n\na,b\n1,2\n", [{"a": "1", "b": "2"}]),  # ヘッダの前の空行
     ],
 )
 def test_parse(csv_str, expected):
@@ -40,13 +42,21 @@ def test_column_count_mismatch(csv_str):
         read_csv_str_to_dicts(csv_str)
 
 
-@pytest.mark.parametrize("csv_str", ["a,a\n1,2\n", "a,b,a\n"])
-def test_duplicate_header(csv_str):
-    with pytest.raises(ValueError, match="line 1: duplicate header: a"):
+@pytest.mark.parametrize(
+    ("csv_str", "message"),
+    [
+        ("a,a\n1,2\n", "line 1: duplicate header: 'a'"),
+        ("a,b,a\n", "line 1: duplicate header: 'a'"),
+        ("a,,\n1,2,3\n", "line 1: duplicate header: ''"),  # 空の名前も見えるように
+        ("\na,a\n", "line 2: duplicate header: 'a'"),  # 空行を数えた行番号
+    ],
+)
+def test_duplicate_header(csv_str, message):
+    with pytest.raises(ValueError, match=f"^{re.escape(message)}$"):
         read_csv_str_to_dicts(csv_str)
 
 
-@pytest.mark.parametrize("csv_str", ["", "a,b\n"])
+@pytest.mark.parametrize("csv_str", ["", "\n\n", "a,b\n"])
 def test_no_data_rows(csv_str):
     assert read_csv_str_to_dicts(csv_str) == []
 

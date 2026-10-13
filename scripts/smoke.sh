@@ -8,23 +8,25 @@ timeout="${SMOKE_TIMEOUT:-150}"
 trap 'docker compose down -v' EXIT
 
 ng() {
-  docker compose logs app
+  docker compose logs app || true
   echo "smoke: NG ($1)" >&2
   exit 1
 }
 
 docker compose up -d --build app
 for ((waited = 0; waited < timeout; waited += 5)); do
+  # 止まる直前のログも見るよう、状態を先に取る
+  running="$(docker compose ps --status running -q app || true)"
   logs="$(docker compose logs app || true)"
+  if [[ "$logs" == *"Executed 'Functions.sample_csv_function' (Failed"* ]]; then
+    ng "関数の実行が失敗した (${waited}s)"
+  fi
   if [[ "$logs" == *"Loaded 3 rows"* ]]; then
     echo "$logs"
     echo "smoke: OK (${waited}s)"
     exit 0
   fi
-  if [[ "$logs" == *"Executed 'Functions.sample_csv_function' (Failed"* ]]; then
-    ng "関数の実行が失敗した (${waited}s)"
-  fi
-  if [[ -z "$(docker compose ps --status running -q app || true)" ]]; then
+  if [[ -z "$running" ]]; then
     ng "app コンテナが止まった (${waited}s)"
   fi
   sleep 5
