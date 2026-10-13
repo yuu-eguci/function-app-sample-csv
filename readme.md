@@ -3,7 +3,8 @@ Azure Function App sample: CSV
 
 [![CI](https://github.com/yuu-eguci/function-app-sample-csv/actions/workflows/ci.yml/badge.svg)](https://github.com/yuu-eguci/function-app-sample-csv/actions/workflows/ci.yml)
 
-Timer trigger で CSV を読んでログに出す Azure Functions (Python v1 プログラミングモデル) のサンプル。
+タイマーで CSV を読んで、ログに出す Azure Functions のサンプル。
+クラウドの設定なしで、まずは手元で動かしてみようぜ。
 
 - Docker: 対応!
 - Python: 3.13!
@@ -20,7 +21,7 @@ docker compose up --build app
 - Azurite (ストレージエミュレータ) と Functions ホストが、インターネットに出られない閉じたネットワークで起動する。
 - 1 分以内にタイマーが発火して、CSV の 3 行がログに出る。止めるときは Ctrl+C。
 - Functions のイメージは amd64 のみなので、Apple Silicon ではエミュレーションで動く (起動が少し遅い)。
-- 自動で確認したいときは `scripts/smoke.sh` (起動 → "Loaded 3 rows" が出るまで待つ → 片付け。関数の実行が失敗するか app が止まったら、待たずに NG。CI でも使う)。
+- 自動で起動確認して片付けるなら `scripts/smoke.sh`。失敗したら NG になる。
 
 Lint とテストはこれ↓ (ruff + pytest。ネットワークなし)
 
@@ -76,15 +77,12 @@ uv export --locked --no-dev --no-hashes --no-emit-project -o requirements.txt
 参考: https://learn.microsoft.com/ja-jp/azure/azure-functions/functions-reference-python?tabs=asgi%2Capplication-level&pivots=python-mode-configuration#folder-structure
 
 - このディレクトリ構成は Azure Functions 拡張機能で作る。 (VSC)
-    - Python プログラミングモデル v2 は、このリポジトリを作っている段階ではプレビュー。 (いまは GA。このリポジトリは v1 のまま)
-- venv 環境がデフォだけど、ほかのツールに替えることができる。最初は pipenv にして、いまは uv (pyproject.toml + uv.lock)。
+    - このリポジトリは Python の v1 プログラミングモデルを使う。
+- 依存管理は uv (pyproject.toml + uv.lock)。
     - Azure 側は requirements.txt を読むので、それは `uv export` で作る。
 - Functions のイメージ (Docker / Azure) では、依存は `.python_packages/lib/site-packages` に入れる (Dockerfile もそう)。ふつうに pip install すると、ワーカーに同梱の azure-functions のほうが先に読まれて、ロックした版にならない。ローカルの func start は .venv を使う。
 - Python 3.13 は Linux の従量課金 (Consumption) プランでは使えない (3.12 まで)。Flex Consumption なら使える。
-- CI/CD は最初、Azure Function App 側にリソースを作るときついでに GitHub Actions を設定してやっていた。 Secrets も登録してくれて楽だったよ。
-    - 注意: これを有効にするにはリソースの public url を有効にする必要がある。一度 "セキュリティのため〜" とかいって無効にしたらデプロイするとき 403 が出まくった。
-    - いまは Function App を削除したので、その deploy workflow も削除した (中身は git の履歴にある)。動かしているのは CI (lint・test・Docker での起動確認) だけ。
-- Function App は App Service Plan の上にあるっぽくて、 slot を使うこともできる。
+- CI は lint・テスト・Docker での起動確認だけ。Azure へのデプロイはしない。
 - このリポジトリでは Ruff や pytest も導入したよ。 pyproject.toml と .github/workflows/ci.yml を見たら雰囲気がわかるよ。
 - ローカル環境で実行するときはこんな感じ↓ (Docker なしでやる場合)
     1. F5 押して Azure Tools 拡張機能をインストール
