@@ -1,5 +1,5 @@
-# docker compose up app         … Azurite + Functions ホスト (1 分ごとに CSV をログに出す)
-# docker compose run --rm check … ruff + pytest
+# docker compose up --build app          … Azurite + Functions ホスト (1 分ごとに CSV をログに出す)
+# docker compose run --rm --build check … ruff + pytest
 services:
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:3.37.0

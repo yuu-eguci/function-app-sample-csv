@@ -14,7 +14,7 @@ Timer trigger で CSV を読んでログに出す Azure Functions (Python v1 プ
 ## パッと実行してみたい
 
 ```bash
-docker compose up app
+docker compose up --build app
 ```
 
 - Azurite (ストレージエミュレータ) と Functions ホストが、インターネットに出られない閉じたネットワークで起動する。
@@ -25,7 +25,7 @@ docker compose up app
 Lint とテストはこれ↓ (ruff + pytest。ネットワークなし)
 
 ```bash
-docker compose run --rm check
+docker compose run --rm --build check
 ```
 
 ## Python で直接
@@ -38,7 +38,7 @@ uv run ruff check . && uv run ruff format --check .
 uv run pytest
 ```
 
-依存を変えたら requirements.txt も作り直す (Azure のリモートビルドと VS Code の task はこっちを読む。CI で差分チェックしている)。
+依存を変えたら requirements.txt も作り直す (Azure のリモートビルドはこっちを読む。CI で差分チェックしている)。
 
 ```bash
 uv export --locked --no-dev --no-hashes --no-emit-project -o requirements.txt

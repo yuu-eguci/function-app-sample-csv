@@ -22,8 +22,16 @@ def test_quoted_newline_is_kept():
     assert read_csv_str_to_dicts('a,b\n"x\ny",z\n') == [{"a": "x\ny", "b": "z"}]
 
 
-def test_blank_lines_are_skipped():
-    assert read_csv_str_to_dicts("a,b\n\n1,2\n\n") == [{"a": "1", "b": "2"}]
+@pytest.mark.parametrize(
+    ("csv_str", "expected"),
+    [
+        ("a,b\n\n1,2\n\n", [{"a": "1", "b": "2"}]),  # 空行は飛ばす
+        ("a,b\r1,2\r", [{"a": "1", "b": "2"}]),  # CR だけの改行
+        ("a,b,c\n1,2,\n", [{"a": "1", "b": "2", "c": ""}]),  # 末尾の空の列
+    ],
+)
+def test_parse(csv_str, expected):
+    assert read_csv_str_to_dicts(csv_str) == expected
 
 
 @pytest.mark.parametrize("csv_str", ["a,b\n1,2,3\n", "a,b\n1\n"])
@@ -39,7 +47,7 @@ def test_no_data_rows(csv_str):
 
 def test_bom_is_stripped(tmp_path):
     path = tmp_path / "bom.csv"
-    path.write_text("﻿a,b\r\n1,2\r\n", encoding="utf-8", newline="")
+    path.write_text("\ufeffa,b\r\n1,2\r\n", encoding="utf-8", newline="")
     assert read_csv_to_dicts(path) == [{"a": "1", "b": "2"}]
 
 

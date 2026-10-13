@@ -13,3 +13,6 @@ uv.lock
 Dockerfile
 compose.yml
 docs
+scripts
+.dockerignore
+__pycache__

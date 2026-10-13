@@ -9,7 +9,7 @@ trap 'docker compose down -v' EXIT
 
 docker compose up -d --build app
 for ((waited = 0; waited < timeout; waited += 5)); do
-  logs="$(docker compose logs app)"
+  logs="$(docker compose logs app || true)"
   if [[ "$logs" == *"Loaded 3 rows"* ]]; then
     echo "$logs"
     echo "smoke: OK (${waited}s)"
