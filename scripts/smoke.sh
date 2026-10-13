@@ -14,7 +14,7 @@ ng() {
 }
 
 docker compose up -d --build app
-for ((waited = 0; waited < timeout; waited += 5)); do
+for ((waited = 0; ; waited += 5)); do
   # 止まる直前のログも見るよう、状態を先に取る
   running="$(docker compose ps --status running -q app || true)"
   logs="$(docker compose logs app || true)"
@@ -29,6 +29,8 @@ for ((waited = 0; waited < timeout; waited += 5)); do
   if [[ -z "$running" ]]; then
     ng "app コンテナが止まった (${waited}s)"
   fi
+  # timeout 秒たった時点のログも見てから抜ける (最後の sleep 中に出たログを見逃さない)
+  ((waited < timeout)) || break
   sleep 5
 done
 ng "'Loaded 3 rows' が ${timeout} 秒以内に出なかった"
