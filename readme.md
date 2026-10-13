@@ -79,7 +79,7 @@ uv export --locked --no-dev --no-hashes --no-emit-project -o requirements.txt
     - Python プログラミングモデル v2 は、このリポジトリを作っている段階ではプレビュー。 (いまは GA。このリポジトリは v1 のまま)
 - venv 環境がデフォだけど、ほかのツールに替えることができる。最初は pipenv にして、いまは uv (pyproject.toml + uv.lock)。
     - Azure 側は requirements.txt を読むので、それは `uv export` で作る。
-- 依存は `.python_packages/lib/site-packages` に入れる (Dockerfile もそうしている)。ふつうに pip install すると、Functions のイメージではワーカー同梱の古い azure-functions (2.2.0b5) のほうが読まれていた。
+- Functions のイメージ (Docker / Azure) では、依存は `.python_packages/lib/site-packages` に入れる (Dockerfile もそう)。ふつうに pip install すると、ワーカーに同梱の azure-functions のほうが先に読まれて、ロックした版にならない。ローカルの func start は .venv を使う。
 - Python 3.13 は Linux の従量課金 (Consumption) プランでは使えない (3.12 まで)。Flex Consumption なら使える。
 - CI/CD は最初、Azure Function App 側にリソースを作るときついでに GitHub Actions を設定してやっていた。 Secrets も登録してくれて楽だったよ。
     - 注意: これを有効にするにはリソースの public url を有効にする必要がある。一度 "セキュリティのため〜" とかいって無効にしたらデプロイするとき 403 が出まくった。
