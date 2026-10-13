@@ -20,7 +20,7 @@ docker compose up --build app
 - Azurite (ストレージエミュレータ) と Functions ホストが、インターネットに出られない閉じたネットワークで起動する。
 - 1 分以内にタイマーが発火して、CSV の 3 行がログに出る。止めるときは Ctrl+C。
 - Functions のイメージは amd64 のみなので、Apple Silicon ではエミュレーションで動く (起動が少し遅い)。
-- 自動で確認したいときは `scripts/smoke.sh` (起動 → "Loaded 3 rows" が出るまで待つ → 片付け。CI でも使う)。
+- 自動で確認したいときは `scripts/smoke.sh` (起動 → "Loaded 3 rows" が出るまで待つ → 片付け。関数の実行が失敗するか app が止まったら、待たずに NG。CI でも使う)。
 
 Lint とテストはこれ↓ (ruff + pytest。ネットワークなし)
 

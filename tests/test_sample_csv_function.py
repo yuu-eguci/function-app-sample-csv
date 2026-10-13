@@ -40,6 +40,12 @@ def test_column_count_mismatch(csv_str):
         read_csv_str_to_dicts(csv_str)
 
 
+@pytest.mark.parametrize("csv_str", ["a,a\n1,2\n", "a,b,a\n"])
+def test_duplicate_header(csv_str):
+    with pytest.raises(ValueError, match="line 1: duplicate header: a"):
+        read_csv_str_to_dicts(csv_str)
+
+
 @pytest.mark.parametrize("csv_str", ["", "a,b\n"])
 def test_no_data_rows(csv_str):
     assert read_csv_str_to_dicts(csv_str) == []
