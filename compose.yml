@@ -1,0 +1,31 @@
+# docker compose up app         … Azurite + Functions ホスト (1 分ごとに CSV をログに出す)
+# docker compose run --rm check … ruff + pytest
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    command: >-
+      azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+      --location /data --skipApiVersionCheck --loose --disableTelemetry
+    networks: [internal]
+
+  app:
+    build:
+      context: .
+      target: app
+    platform: linux/amd64
+    depends_on: [azurite]
+    environment:
+      # Azurite の開発用アカウント devstoreaccount1。キーはドキュメントで公開されているダミーで秘密ではない
+      AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+    networks: [internal]
+
+  check:
+    build:
+      context: .
+      target: dev
+    network_mode: none
+
+networks:
+  internal:
+    # インターネットに出られないネットワーク
+    internal: true
