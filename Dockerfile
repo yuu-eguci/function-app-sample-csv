@@ -20,7 +20,9 @@ FROM mcr.microsoft.com/azure-functions/python:4-python3.13 AS app
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 COPY requirements.txt /
-RUN pip install --no-cache-dir --root-user-action=ignore -r /requirements.txt
+# .python_packages に入れる (Azure と同じ場所)。普通に pip install すると、ワーカー同梱の古い azure-functions が先に読まれる
+RUN pip install --no-cache-dir --root-user-action=ignore \
+    --target /home/site/wwwroot/.python_packages/lib/site-packages -r /requirements.txt
 COPY host.json /home/site/wwwroot/
 COPY sample_csv_function /home/site/wwwroot/sample_csv_function
 COPY shared_code /home/site/wwwroot/shared_code
