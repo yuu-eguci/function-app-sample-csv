@@ -1,32 +1,51 @@
-import unittest
+import logging
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from sample_csv_function import main
+from sample_csv_function.example import read_csv_to_dicts
 from shared_code.sample_csv_helper_function import read_csv_str_to_dicts
 
+BUNDLED_CSV = Path(__file__).parents[1] / "sample_csv_function" / "jason_statham.csv"
 
-class TestReadCsvStrToDicts(unittest.TestCase):
-    def test_empty_str(self):
-        self.assertEqual(read_csv_str_to_dicts(""), [])
 
-    def test_header_only(self):
-        self.assertEqual(read_csv_str_to_dicts("year,title,role,notes"), [])
+def test_bundled_csv():
+    rows = read_csv_to_dicts(BUNDLED_CSV)
+    assert len(rows) == 3
+    assert all(list(row) == ["year", "title", "role", "notes"] for row in rows)
+    assert rows[1]["title"] == "The Transporter"
 
-    def test_normal(self):
-        csv_str = """\
-year,title,role,notes
-1998,Lock Stock and Two Smoking Barrels,Bacon,
-2004,Collateral,Frank Martin,Cameo credited as Airport Man
-"""
-        expected = [
-            {
-                "year": "1998",
-                "title": "Lock Stock and Two Smoking Barrels",
-                "role": "Bacon",
-                "notes": ""
-            },
-            {
-                "year": "2004",
-                "title": "Collateral",
-                "role": "Frank Martin",
-                "notes": "Cameo credited as Airport Man"
-            }
-        ]
-        self.assertEqual(read_csv_str_to_dicts(csv_str), expected)
+
+def test_quoted_newline_is_kept():
+    assert read_csv_str_to_dicts('a,b\n"x\ny",z\n') == [{"a": "x\ny", "b": "z"}]
+
+
+def test_blank_lines_are_skipped():
+    assert read_csv_str_to_dicts("a,b\n\n1,2\n\n") == [{"a": "1", "b": "2"}]
+
+
+@pytest.mark.parametrize("csv_str", ["a,b\n1,2,3\n", "a,b\n1\n"])
+def test_column_count_mismatch(csv_str):
+    with pytest.raises(ValueError, match="line 2"):
+        read_csv_str_to_dicts(csv_str)
+
+
+@pytest.mark.parametrize("csv_str", ["", "a,b\n"])
+def test_no_data_rows(csv_str):
+    assert read_csv_str_to_dicts(csv_str) == []
+
+
+def test_bom_is_stripped(tmp_path):
+    path = tmp_path / "bom.csv"
+    path.write_text("﻿a,b\r\n1,2\r\n", encoding="utf-8", newline="")
+    assert read_csv_to_dicts(path) == [{"a": "1", "b": "2"}]
+
+
+def test_main_logs_rows_from_any_cwd(tmp_path, monkeypatch, caplog):
+    monkeypatch.chdir(tmp_path)
+    caplog.set_level(logging.INFO)
+    main(SimpleNamespace(past_due=False))
+    assert "Loaded 3 rows" in caplog.text
+    assert "The Transporter" in caplog.text
