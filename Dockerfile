@@ -1,4 +1,4 @@
-# dev: lint とテスト (docker compose run --rm check)
+# dev: lint とテスト (docker compose run --rm --build check)
 FROM python:3.13-slim AS dev
 COPY --from=ghcr.io/astral-sh/uv:0.12 /uv /uvx /bin/
 RUN useradd --create-home app
@@ -15,12 +15,12 @@ RUN uv sync --locked --no-cache
 COPY --chown=app . .
 CMD ["sh", "-c", "ruff check . && ruff format --check . && pytest"]
 
-# app: Functions ホスト (docker compose up app)。最後のステージなので素の docker build はこれになる
+# app: Functions ホスト (docker compose up --build app)。最後のステージなので素の docker build はこれになる
 FROM mcr.microsoft.com/azure-functions/python:4-python3.13 AS app
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 COPY requirements.txt /
-# .python_packages に入れる (Azure と同じ場所)。普通に pip install すると、ワーカー同梱の古い azure-functions が先に読まれる
+# .python_packages に入れる (Azure と同じ場所)。普通に pip install すると、ワーカー同梱の azure-functions が先に読まれて、ロックした版にならない
 RUN pip install --no-cache-dir --root-user-action=ignore \
     --target /home/site/wwwroot/.python_packages/lib/site-packages -r /requirements.txt
 COPY host.json /home/site/wwwroot/
